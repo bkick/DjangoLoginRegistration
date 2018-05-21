@@ -22,6 +22,18 @@ class UserManager(models.Manager):
             errors['pwd_conf']="Password and confirm password do not match"
         return errors
 
+    def login_validator(self, postData):
+        if len(users.objects.filter(email=postData['email']))>0:
+        user=users.objects.get(email=request.postData['email'])
+        if user:
+            if bcrypt.checkpw(request.POST['pwd'].encode(), user.pwd_hash.encode()):
+                request.session['id']=user.first_name
+            else:
+                errors['password']='your password is incorrect'
+        else:
+            errors['email']='that email is not registered with usS')
+
+        return errors 
 class users(models.Model):
     email=models.CharField(max_length=100)
     first_name=models.CharField(max_length=45)

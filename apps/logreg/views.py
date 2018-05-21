@@ -6,21 +6,16 @@ def index(request):
 	return render(request,'index.html')
     
 def login(request):
-    if len(users.objects.filter(email=request.POST['email']))>0:
-        user=users.objects.get(email=request.POST['email'])
-        if user:
-            if bcrypt.checkpw(request.POST['pwd'].encode(), user.pwd_hash.encode()):
-                request.session['id']=user.first_name
-                return redirect('/success')
-            else:
-                messages.error(request,'you could not be logged in')
-                return redirect('/')
-        else:
-            messages.error(request,'you could not be logged in')
-            return redirect('/')
+          errors = users.objects.login_validator(request.POST)
+    if len(errors)>0:
+        for key, value in errors.items():
+            messages.error(request, value)
+        return redirect('/')
+
     else:
-        messages.error(request,'you could not be logged in')
-        return redirect('/')        
+        user1=users.object.get(email=request.POST['email'])
+        request.session['id']=user1.id
+        return redirect('/success')
 def register(request):
     errors = users.objects.basic_validator(request.POST)
     if len(errors)>0:
@@ -30,13 +25,13 @@ def register(request):
     # redirect the user back to the form to fix the errors
     else:
         pwd_hash=bcrypt.hashpw(request.POST['pwd'].encode(), bcrypt.gensalt())
-        users.objects.create(
+        user1=users.objects.create(
             first_name=request.POST['first_name'], 
             last_name=request.POST['last_name'], 
             email=request.POST['email'],
             pwd_hash=pwd_hash
         )
-        request.session['id']=request.POST['first_name']
+        request.session['id']=user1.id
         return redirect('/success')
 def success(request):
     if 'id' in request.session:
